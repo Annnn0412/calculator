@@ -2,138 +2,480 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <!-- 設定響應式網頁，讓手機版面能自動縮放至合適大小 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>簡易數值計算器</title>
-    
-    <!-- ==================== CSS 樣式區域 ==================== -->
+    <title>複利投資試算器</title>
+    <!-- 引入 html2pdf.js 用於將網頁內容匯出為 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* 全域樣式：設定背景色、字型與置中置中 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
-            justify-content: center; /* 水平置中 */
-            align-items: center;     /* 垂直置中 */
-            min-height: 100vh;       /* 讓背景佔滿整個手機螢幕高度 */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f5f5f7; /* 淡灰色質感背景 */
+            background-color: #f5f5f7;
+            padding: 20px 0;
         }
 
-        /* 卡片容器：主要內容區塊 */
         .card {
             background: white;
             padding: 2.5rem 2rem;
-            border-radius: 16px; /* 圓角效果 */
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* 淡淡的陰影增加立體感 */
-            width: 85%;
-            max-width: 360px;   /* 限制最大寬度，確保手機端顯示美觀 */
-            text-align: center;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            width: 90%;
+            max-width: 500px;
         }
 
-        /* 標題樣式 */
         h2 {
             margin-top: 0;
             margin-bottom: 1.5rem;
             color: #1d1d1f;
+            text-align: center;
         }
 
-        /* 輸入框樣式 */
-        input {
+        label {
+            font-size: 14px;
+            color: #6e6e73;
+            font-weight: 600;
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input {
             width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            box-sizing: border-box; /* 防止 padding 撐大輸入框 */
+            padding: 12px;
+            margin: 6px 0 12px 0;
+            box-sizing: border-box;
             border: 1px solid #d2d2d7;
             border-radius: 10px;
-            font-size: 16px;       /* 設為 16px 以上可防止 iOS 手機自動放大頁面 */
+            font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
+            background-color: white;
         }
 
-        /* 當點擊輸入框時的邊框發光效果 */
-        input:focus {
+        select:focus, input:focus {
             border-color: #0071e3;
         }
 
-        /* 計算按鈕樣式 */
-        button {
-            width: 100%;
-            padding: 14px;
+        .btn-group {
+            display: flex;
+            gap: 8px;
             margin-top: 16px;
-            background-color: #0071e3; /* 經典藍色按鈕 */
-            color: white;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 8px;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: opacity 0.2s;
         }
 
-        /* 按鈕按下時的效果 */
-        button:active {
-            background-color: #005bb5;
-        }
+        .btn-calc { background-color: #0071e3; color: white; }
+        .btn-pdf { background-color: #34c759; color: white; }
+        .btn-clear { background-color: #ff3b30; color: white; flex: 0.5; }
 
-        /* 結果顯示區域樣式 */
-        .result {
+        button:active { opacity: 0.8; }
+
+        /* 畫面上的紀錄區域 */
+        #reportArea {
             margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e5ea; /* 上方加一條分隔線 */
-            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-box {
+            background-color: #f9f9fb;
+            border-radius: 12px;
+            border: 1px solid #e5e5ea;
+            padding: 14px;
+            overflow-x: auto;
+        }
+
+        .report-title {
+            text-align: left;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #0071e3;
+            font-size: 15px;
+            border-left: 4px solid #0071e3;
+            padding-left: 8px;
+        }
+
+        /* 歷史紀錄表格 */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            table-layout: fixed; /* 固定欄寬比，確保上下精準對齊 */
+        }
+
+        .history-table th, .history-table td {
+            padding: 8px 4px;
+            text-align: center;
+            border-bottom: 1px solid #e5e5ea;
+            word-break: break-all;
+        }
+
+        .history-table th {
+            color: #6e6e73;
             font-weight: 600;
+            background-color: #efeff4;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #8e8e93;
+            font-size: 13px;
+            padding: 10px 0;
+        }
+
+        /* ================= 專屬 Excel 風格 PDF 導出模板 ================= */
+        #pdfExportTemplate {
+            display: none;
+            padding: 15px 20px;
+            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #333;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .pdf-title-box {
+            text-align: center;
+            border-bottom: 2px solid #0071e3;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .pdf-main-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0071e3;
+        }
+
+        .pdf-table-header {
+            font-size: 13px;
+            font-weight: bold;
             color: #1d1d1f;
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: center;
+            margin-bottom: 10px;
+            table-layout: fixed; /* 讓寬度嚴格按照指定的百分比分配 */
+        }
+
+        .excel-table th {
+            background-color: #0071e3;
+            color: white;
+            padding: 6px 4px;
+            border: 1px solid #005bb5;
+            font-weight: bold;
+        }
+
+        .excel-table td {
+            padding: 6px 4px;
+            border: 1px solid #d2d2d7;
+            word-break: break-all;
+        }
+
+        .excel-table tr:nth-child(even) {
+            background-color: #f9f9fb;
         }
     </style>
 </head>
 <body>
 
-<!-- ==================== HTML 結構區域 ==================== -->
-<div class="card">
-    <h2>簡易計算器</h2>
+<div class="card" id="calculatorCard">
+    <h2>複利投資計算器</h2>
     
-    <!-- 輸入欄位 1：id 用於 JS 抓取資料，placeholder 為預設提示字 -->
-    <input type="number" id="num1" placeholder="請輸入第一個數字" inputmode="decimal">
+    <!-- 切換試算模式 -->
+    <label for="mode">選擇計算模式</label>
+    <select id="mode" onchange="toggleMode()">
+        <option value="single">1. 單筆一次性投入</option>
+        <option value="monthly">2. 每月定期定額</option>
+    </select>
+    
+    <!-- 輸入欄位 1 -->
+    <label id="lblNum1" for="num1">一開始投入的本金 (元)</label>
+    <input type="number" id="num1" placeholder="例如：100000" inputmode="decimal">
     
     <!-- 輸入欄位 2 -->
-    <input type="number" id="num2" placeholder="請輸入第二個數字" inputmode="decimal">
+    <label for="rate">預期年投報率 (%)</label>
+    <input type="number" id="rate" placeholder="例如：5 表示 5%" step="0.1" inputmode="decimal">
+
+    <!-- 輸入欄位 3 -->
+    <label for="years">累積年數 (年)</label>
+    <input type="number" id="years" placeholder="例如：10" inputmode="decimal">
     
-    <!-- 按鈕：onclick="calculate()" 表示按下時觸發 JS 的 calculate 函式 -->
-    <button onclick="calculate()">計算結果</button>
+    <!-- 按鈕組 -->
+    <div class="btn-group">
+        <button class="btn-calc" onclick="calculate()">計算並新增</button>
+        <button class="btn-pdf" onclick="downloadPDF()">下載 PDF 試算表</button>
+        <button class="btn-clear" onclick="clearHistory()">清空</button>
+    </div>
     
-    <!-- 結果顯示文字區塊 -->
-    <div class="result" id="resultText">結果：--</div>
+    <!-- 手機端畫面的雙分區紀錄 -->
+    <div id="reportArea">
+        <!-- 區塊一：單筆一次性投入 -->
+        <div class="section-box">
+            <div class="report-title">1. 單筆一次性投入紀錄</div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">#</th>
+                        <th style="width: 20%;">投入本金</th>
+                        <th style="width: 14%;">年利率</th>
+                        <th style="width: 14%;">年數</th>
+                        <th style="width: 20%;">總投報率</th>
+                        <th style="width: 24%;">期末總金額</th>
+                    </tr>
+                </thead>
+                <tbody id="singleHistoryList">
+                    <tr><td colspan="6" class="empty-tip">尚無單筆投入紀錄</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 區塊二：每月定期定額（無總投報率） -->
+        <div class="section-box">
+            <div class="report-title">2. 每月定期定額紀錄</div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">#</th>
+                        <th style="width: 20%;">月扣金額</th>
+                        <th style="width: 14%;">年利率</th>
+                        <th style="width: 14%;">年數</th>
+                        <th style="width: 20%;">累積本金</th>
+                        <th style="width: 24%;">期末總金額</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyHistoryList">
+                    <tr><td colspan="6" class="empty-tip">尚無定期定額紀錄</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<!-- ==================== JavaScript 邏輯區域 ==================== -->
-<script>
-    // 主要運算函式
-    function calculate() {
-        // 1. 從輸入框抓取使用者填寫的內容 (value)
-        const input1 = document.getElementById('num1').value;
-        const input2 = document.getElementById('num2').value;
+<!-- ================= 隱藏的 PDF 輸出模板 ================= -->
+<div id="pdfExportTemplate">
+    <div class="pdf-title-box">
+        <div class="pdf-main-title">投資複利試算數據彙整表</div>
+        <div style="font-size: 10px; color: #666; margin-top: 4px;">產出時間：<span id="pdfPrintDate"></span></div>
+    </div>
 
-        // 2. 將字串轉換為數字 (parseFloat 可處理小數點)
-        const n1 = parseFloat(input1);
-        const n2 = parseFloat(input2);
-        
-        // 3. 防呆檢查：如果欄位沒填或輸入非數字 (isNaN 意為 Is Not a Number)
-        if (isNaN(n1) || isNaN(n2)) {
-            document.getElementById('resultText').innerText = "請完整輸入兩個數字！";
-            return; // 結束函式，不執行後續運算
+    <!-- PDF 表格 1：單筆一次性投入 -->
+    <div class="pdf-table-header">一、 單筆一次性投入試算明細</div>
+    <table class="excel-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">編號</th>
+                <th style="width: 20%;">投入本金</th>
+                <th style="width: 14%;">年投報率</th>
+                <th style="width: 14%;">累積年數</th>
+                <th style="width: 20%;">總投報率</th>
+                <th style="width: 24%;">期末總金額</th>
+            </tr>
+        </thead>
+        <tbody id="pdfSingleBody">
+            <!-- 插入單筆資料 -->
+        </tbody>
+    </table>
+
+    <!-- PDF 表格 2：每月定期定額 -->
+    <div class="pdf-table-header" style="margin-top: 20px;">二、 每月定期定額試算明細</div>
+    <table class="excel-table">
+        <thead>
+            <tr>
+                <th style="width: 8%;">編號</th>
+                <th style="width: 20%;">每月扣款額</th>
+                <th style="width: 14%;">年投報率</th>
+                <th style="width: 14%;">累積年數</th>
+                <th style="width: 20%;">累積投入本金</th>
+                <th style="width: 24%;">期末總金額</th>
+            </tr>
+        </thead>
+        <tbody id="pdfMonthlyBody">
+            <!-- 插入定期定額資料 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let singleHistory = [];
+    let monthlyHistory = [];
+
+    function toggleMode() {
+        const mode = document.getElementById('mode').value;
+        const lblNum1 = document.getElementById('lblNum1');
+        if (mode === 'single') {
+            lblNum1.innerText = "一開始投入的本金 (元)";
+            document.getElementById('num1').placeholder = "例如：100000";
+        } else {
+            lblNum1.innerText = "每月定期定額金額 (元)";
+            document.getElementById('num1').placeholder = "例如：3000";
         }
+    }
+
+    function calculate() {
+        const mode = document.getElementById('mode').value;
+        const val1 = parseFloat(document.getElementById('num1').value);
+        const rPercent = parseFloat(document.getElementById('rate').value);
+        const n = parseFloat(document.getElementById('years').value);
+
+        if (isNaN(val1) || isNaN(rPercent) || isNaN(n) || val1 <= 0 || n <= 0) {
+            alert("請填寫正確的數值！");
+            return;
+        }
+
+        const r = rPercent / 100;
+        let totalAmount = 0;
+        let totalPrincipal = 0;
+
+        if (mode === 'single') {
+            totalPrincipal = val1;
+            totalAmount = val1 * Math.pow(1 + r, n);
+            const totalReturnRate = ((totalAmount - totalPrincipal) / totalPrincipal) * 100;
+
+            singleHistory.push({
+                val1: val1,
+                rate: rPercent,
+                years: n,
+                totalReturnRate: totalReturnRate.toFixed(2) + "%",
+                totalAmount: Math.round(totalAmount)
+            });
+        } else {
+            totalPrincipal = val1 * 12 * n;
+            totalAmount = ((val1 * 12 * (Math.pow(1 + r, n + 1) - 1)) / r) - (val1 * 12);
+
+            monthlyHistory.push({
+                val1: val1,
+                rate: rPercent,
+                years: n,
+                totalPrincipal: Math.round(totalPrincipal),
+                totalAmount: Math.round(totalAmount)
+            });
+        }
+
+        renderHistory();
+    }
+
+    function renderHistory() {
+        // 1. 單筆表格
+        const singleTbody = document.getElementById('singleHistoryList');
+        if (singleHistory.length === 0) {
+            singleTbody.innerHTML = `<tr><td colspan="6" class="empty-tip">尚無單筆投入紀錄</td></tr>`;
+        } else {
+            singleTbody.innerHTML = singleHistory.map((item, index) => `
+                <tr>
+                    <td><b>${index + 1}</b></td>
+                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.rate}%</td>
+                    <td>${item.years}年</td>
+                    <td>${item.totalReturnRate}</td>
+                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 2. 定期定額表格
+        const monthlyTbody = document.getElementById('monthlyHistoryList');
+        if (monthlyHistory.length === 0) {
+            monthlyTbody.innerHTML = `<tr><td colspan="6" class="empty-tip">尚無定期定額紀錄</td></tr>`;
+        } else {
+            monthlyTbody.innerHTML = monthlyHistory.map((item, index) => `
+                <tr>
+                    <td><b>${index + 1}</b></td>
+                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.rate}%</td>
+                    <td>${item.years}年</td>
+                    <td>$${item.totalPrincipal.toLocaleString()}</td>
+                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    function clearHistory() {
+        if (singleHistory.length === 0 && monthlyHistory.length === 0) return;
+        if (confirm("確定要清空所有紀錄嗎？")) {
+            singleHistory = [];
+            monthlyHistory = [];
+            renderHistory();
+        }
+    }
+
+    function downloadPDF() {
+        if (singleHistory.length === 0 && monthlyHistory.length === 0) {
+            alert("目前尚無任何計算紀錄，請先計算至少一筆數值！");
+            return;
+        }
+
+        document.getElementById('pdfPrintDate').innerText = new Date().toLocaleString('zh-TW');
         
-        // 4. 執行固定的四則運算邏輯
-        // 💡 可以在這裡自由修改公式，例如：
-        // 加法：n1 + n2
-        // 減法：n1 - n2
-        // 乘法：n1 * n2
-        // 除法：n1 / n2
-        // 複合運算範例：(n1 + n2) * 2
-        const result = (n1 + n2) * 2;
-        
-        // 5. 將計算結果寫回頁面的文字區塊中
-        document.getElementById('resultText').innerText = "結果：" + result;
+        // 渲染 PDF 單筆表格
+        const pdfSingleBody = document.getElementById('pdfSingleBody');
+        if (singleHistory.length === 0) {
+            pdfSingleBody.innerHTML = `<tr><td colspan="6" style="color:#999; padding:8px;">無單筆試算紀錄</td></tr>`;
+        } else {
+            pdfSingleBody.innerHTML = singleHistory.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.rate}%</td>
+                    <td>${item.years}年</td>
+                    <td style="color:#d9534f; font-weight:bold;">${item.totalReturnRate}</td>
+                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 渲染 PDF 定期定額表格
+        const pdfMonthlyBody = document.getElementById('pdfMonthlyBody');
+        if (monthlyHistory.length === 0) {
+            pdfMonthlyBody.innerHTML = `<tr><td colspan="6" style="color:#999; padding:8px;">無定期定額試算紀錄</td></tr>`;
+        } else {
+            pdfMonthlyBody.innerHTML = monthlyHistory.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.rate}%</td>
+                    <td>${item.years}年</td>
+                    <td>$${item.totalPrincipal.toLocaleString()}</td>
+                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 顯示 PDF 模板進行渲染
+        const element = document.getElementById('pdfExportTemplate');
+        element.style.display = 'block';
+
+        const opt = {
+            margin:       [8, 8, 8, 8],
+            filename:     '投資複利分項試算表.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.style.display = 'none';
+        });
     }
 </script>
 
