@@ -96,7 +96,7 @@
             border-radius: 12px;
             border: 1px solid #e5e5ea;
             padding: 12px;
-            overflow-x: auto; /* 核心：超出寬度自動允許滑動 */
+            overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -115,14 +115,14 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
-            white-space: nowrap; /* 核心：絕不換行 */
+            white-space: nowrap;
         }
 
         .history-table th, .history-table td {
             padding: 8px 6px;
             text-align: center;
             border-bottom: 1px solid #e5e5ea;
-            white-space: nowrap; /* 核心：絕不換行 */
+            white-space: nowrap;
         }
 
         .history-table th {
@@ -211,9 +211,9 @@
         <option value="monthly">2. 每月定期定額</option>
     </select>
     
-    <!-- 輸入欄位 1 -->
+    <!-- 輸入欄位 1 (加入自動千分位處理) -->
     <label id="lblNum1" for="num1">一開始投入的本金 (元)</label>
-    <input type="number" id="num1" placeholder="例如：100000" inputmode="decimal">
+    <input type="text" id="num1" placeholder="例如：100,000" inputmode="decimal" oninput="formatInput(this)">
     
     <!-- 輸入欄位 2 -->
     <label for="rate">預期年投報率 (%)</label>
@@ -322,21 +322,38 @@
     let singleHistory = [];
     let monthlyHistory = [];
 
+    // 輸入時即時自動加上千分位逗號
+    function formatInput(input) {
+        // 先移除所有非數字與非小數點的字元
+        let cleanVal = input.value.replace(/[^\d.]/g, '');
+        if (!cleanVal) {
+            input.value = '';
+            return;
+        }
+        // 切分整數與小數部分
+        let parts = cleanVal.split('.');
+        parts[0] = Number(parts[0]).toLocaleString('en-US'); // 整數部分加逗號
+        input.value = parts.join('.');
+    }
+
     function toggleMode() {
         const mode = document.getElementById('mode').value;
         const lblNum1 = document.getElementById('lblNum1');
         if (mode === 'single') {
             lblNum1.innerText = "一開始投入的本金 (元)";
-            document.getElementById('num1').placeholder = "例如：100000";
+            document.getElementById('num1').placeholder = "例如：100,000";
         } else {
             lblNum1.innerText = "每月定期定額金額 (元)";
-            document.getElementById('num1').placeholder = "例如：3000";
+            document.getElementById('num1').placeholder = "例如：3,000";
         }
     }
 
     function calculate() {
         const mode = document.getElementById('mode').value;
-        const val1 = parseFloat(document.getElementById('num1').value);
+        
+        // 抓取金額輸入框時，把裡面的逗號去除去做純數字運算
+        const rawNum1 = document.getElementById('num1').value.replace(/,/g, '');
+        const val1 = parseFloat(rawNum1);
         const rPercent = parseFloat(document.getElementById('rate').value);
         const n = parseFloat(document.getElementById('years').value);
 
@@ -378,7 +395,7 @@
     }
 
     function renderHistory() {
-        // 1. 單筆表格（省略 $ 符號避免換行，並以千分位格式化）
+        // 1. 單筆表格
         const singleTbody = document.getElementById('singleHistoryList');
         if (singleHistory.length === 0) {
             singleTbody.innerHTML = `<tr><td colspan="6" class="empty-tip">尚無單筆投入紀錄</td></tr>`;
@@ -430,7 +447,7 @@
 
         document.getElementById('pdfPrintDate').innerText = new Date().toLocaleString('zh-TW');
         
-        // 渲染 PDF 單筆表格（PDF 導出時保留 $ 符號）
+        // 渲染 PDF 單筆表格
         const pdfSingleBody = document.getElementById('pdfSingleBody');
         if (singleHistory.length === 0) {
             pdfSingleBody.innerHTML = `<tr><td colspan="6" style="color:#999; padding:8px;">無單筆試算紀錄</td></tr>`;
