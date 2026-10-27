@@ -25,6 +25,7 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             width: 90%;
             max-width: 500px;
+            box-sizing: border-box;
         }
 
         h2 {
@@ -89,12 +90,14 @@
             gap: 20px;
         }
 
+        /* 外框容器允許橫向滑動，防止窄螢幕擠壓 */
         .section-box {
             background-color: #f9f9fb;
             border-radius: 12px;
             border: 1px solid #e5e5ea;
-            padding: 14px;
-            overflow-x: auto;
+            padding: 12px;
+            overflow-x: auto; /* 超出寬度時顯示橫向滾動條 */
+            -webkit-overflow-scrolling: touch; /* 平滑滑動體驗 */
         }
 
         .report-title {
@@ -110,16 +113,16 @@
         /* 歷史紀錄表格 */
         .history-table {
             width: 100%;
+            min-width: 340px; /* 設定最小寬度，防止手機畫面上太擠 */
             border-collapse: collapse;
-            font-size: 12px;
-            table-layout: fixed; /* 固定欄寬比，確保上下精準對齊 */
+            font-size: 11px; /* 微調手機端字體，讓數字完整顯示 */
+            white-space: nowrap; /* 關鍵：強制禁止換行 */
         }
 
         .history-table th, .history-table td {
-            padding: 8px 4px;
+            padding: 8px 3px;
             text-align: center;
             border-bottom: 1px solid #e5e5ea;
-            word-break: break-all;
         }
 
         .history-table th {
@@ -173,7 +176,7 @@
             font-size: 11px;
             text-align: center;
             margin-bottom: 10px;
-            table-layout: fixed; /* 讓寬度嚴格按照指定的百分比分配 */
+            table-layout: fixed;
         }
 
         .excel-table th {
@@ -187,7 +190,7 @@
         .excel-table td {
             padding: 6px 4px;
             border: 1px solid #d2d2d7;
-            word-break: break-all;
+            white-space: nowrap; /* PDF 導出時同樣禁止數字折行 */
         }
 
         .excel-table tr:nth-child(even) {
@@ -222,7 +225,7 @@
     <!-- 按鈕組 -->
     <div class="btn-group">
         <button class="btn-calc" onclick="calculate()">計算並新增</button>
-        <button class="btn-pdf" onclick="downloadPDF()">下載 PDF</button>
+        <button class="btn-pdf" onclick="downloadPDF()">下載 PDF 試算表</button>
         <button class="btn-clear" onclick="clearHistory()">清空</button>
     </div>
     
@@ -234,12 +237,12 @@
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th style="width: 8%;">#</th>
-                        <th style="width: 20%;">投入本金</th>
+                        <th style="width: 6%;">#</th>
+                        <th style="width: 22%;">投入本金</th>
                         <th style="width: 14%;">年利率</th>
-                        <th style="width: 14%;">年數</th>
+                        <th style="width: 12%;">年數</th>
                         <th style="width: 20%;">總投報率</th>
-                        <th style="width: 24%;">期末總金額</th>
+                        <th style="width: 26%;">期末總金額</th>
                     </tr>
                 </thead>
                 <tbody id="singleHistoryList">
@@ -254,12 +257,12 @@
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th style="width: 8%;">#</th>
+                        <th style="width: 6%;">#</th>
                         <th style="width: 20%;">月扣金額</th>
                         <th style="width: 14%;">年利率</th>
-                        <th style="width: 14%;">年數</th>
-                        <th style="width: 20%;">累積本金</th>
-                        <th style="width: 24%;">期末總金額</th>
+                        <th style="width: 12%;">年數</th>
+                        <th style="width: 22%;">累積本金</th>
+                        <th style="width: 26%;">期末總金額</th>
                     </tr>
                 </thead>
                 <tbody id="monthlyHistoryList">
