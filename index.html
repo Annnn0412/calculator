@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <!-- 設定響應式網頁，讓手機版面能自動縮放至合適大小 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡易數值計算器</title>
+    
+    <!-- ==================== CSS 樣式區域 ==================== -->
+    <style>
+        /* 全域樣式：設定背景色、字型與置中置中 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center; /* 水平置中 */
+            align-items: center;     /* 垂直置中 */
+            min-height: 100vh;       /* 讓背景佔滿整個手機螢幕高度 */
+            margin: 0;
+            background-color: #f5f5f7; /* 淡灰色質感背景 */
+        }
+
+        /* 卡片容器：主要內容區塊 */
+        .card {
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: 16px; /* 圓角效果 */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* 淡淡的陰影增加立體感 */
+            width: 85%;
+            max-width: 360px;   /* 限制最大寬度，確保手機端顯示美觀 */
+            text-align: center;
+        }
+
+        /* 標題樣式 */
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+        }
+
+        /* 輸入框樣式 */
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            box-sizing: border-box; /* 防止 padding 撐大輸入框 */
+            border: 1px solid #d2d2d7;
+            border-radius: 10px;
+            font-size: 16px;       /* 設為 16px 以上可防止 iOS 手機自動放大頁面 */
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        /* 當點擊輸入框時的邊框發光效果 */
+        input:focus {
+            border-color: #0071e3;
+        }
+
+        /* 計算按鈕樣式 */
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background-color: #0071e3; /* 經典藍色按鈕 */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        /* 按鈕按下時的效果 */
+        button:active {
+            background-color: #005bb5;
+        }
+
+        /* 結果顯示區域樣式 */
+        .result {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5ea; /* 上方加一條分隔線 */
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== HTML 結構區域 ==================== -->
+<div class="card">
+    <h2>簡易計算器</h2>
+    
+    <!-- 輸入欄位 1：id 用於 JS 抓取資料，placeholder 為預設提示字 -->
+    <input type="number" id="num1" placeholder="請輸入第一個數字" inputmode="decimal">
+    
+    <!-- 輸入欄位 2 -->
+    <input type="number" id="num2" placeholder="請輸入第二個數字" inputmode="decimal">
+    
+    <!-- 按鈕：onclick="calculate()" 表示按下時觸發 JS 的 calculate 函式 -->
+    <button onclick="calculate()">計算結果</button>
+    
+    <!-- 結果顯示文字區塊 -->
+    <div class="result" id="resultText">結果：--</div>
+</div>
+
+<!-- ==================== JavaScript 邏輯區域 ==================== -->
+<script>
+    // 主要運算函式
+    function calculate() {
+        // 1. 從輸入框抓取使用者填寫的內容 (value)
+        const input1 = document.getElementById('num1').value;
+        const input2 = document.getElementById('num2').value;
+
+        // 2. 將字串轉換為數字 (parseFloat 可處理小數點)
+        const n1 = parseFloat(input1);
+        const n2 = parseFloat(input2);
+        
+        // 3. 防呆檢查：如果欄位沒填或輸入非數字 (isNaN 意為 Is Not a Number)
+        if (isNaN(n1) || isNaN(n2)) {
+            document.getElementById('resultText').innerText = "請完整輸入兩個數字！";
+            return; // 結束函式，不執行後續運算
+        }
+        
+        // 4. 執行固定的四則運算邏輯
+        // 💡 可以在這裡自由修改公式，例如：
+        // 加法：n1 + n2
+        // 減法：n1 - n2
+        // 乘法：n1 * n2
+        // 除法：n1 / n2
+        // 複合運算範例：(n1 + n2) * 2
+        const result = (n1 + n2) * 2;
+        
+        // 5. 將計算結果寫回頁面的文字區塊中
+        document.getElementById('resultText').innerText = "結果：" + result;
+    }
+</script>
+
+</body>
+</html>
