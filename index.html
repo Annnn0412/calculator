@@ -20,10 +20,10 @@
 
         .card {
             background: white;
-            padding: 2.5rem 2rem;
+            padding: 2.5rem 1.5rem;
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            width: 90%;
+            width: 92%;
             max-width: 500px;
             box-sizing: border-box;
         }
@@ -67,10 +67,10 @@
 
         button {
             flex: 1;
-            padding: 14px 8px;
+            padding: 14px 6px;
             border: none;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s;
@@ -90,14 +90,14 @@
             gap: 20px;
         }
 
-        /* 外框容器允許橫向滑動，防止窄螢幕擠壓 */
+        /* 允許橫向滑動的滾動外框 */
         .section-box {
             background-color: #f9f9fb;
             border-radius: 12px;
             border: 1px solid #e5e5ea;
             padding: 12px;
-            overflow-x: auto; /* 超出寬度時顯示橫向滾動條 */
-            -webkit-overflow-scrolling: touch; /* 平滑滑動體驗 */
+            overflow-x: auto; /* 核心：超出寬度自動允許滑動 */
+            -webkit-overflow-scrolling: touch;
         }
 
         .report-title {
@@ -110,19 +110,19 @@
             padding-left: 8px;
         }
 
-        /* 歷史紀錄表格 */
+        /* 手機畫面歷史紀錄表格 */
         .history-table {
             width: 100%;
-            min-width: 340px; /* 設定最小寬度，防止手機畫面上太擠 */
             border-collapse: collapse;
-            font-size: 11px; /* 微調手機端字體，讓數字完整顯示 */
-            white-space: nowrap; /* 關鍵：強制禁止換行 */
+            font-size: 12px;
+            white-space: nowrap; /* 核心：絕不換行 */
         }
 
         .history-table th, .history-table td {
-            padding: 8px 3px;
+            padding: 8px 6px;
             text-align: center;
             border-bottom: 1px solid #e5e5ea;
+            white-space: nowrap; /* 核心：絕不換行 */
         }
 
         .history-table th {
@@ -185,12 +185,13 @@
             padding: 6px 4px;
             border: 1px solid #005bb5;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .excel-table td {
             padding: 6px 4px;
             border: 1px solid #d2d2d7;
-            white-space: nowrap; /* PDF 導出時同樣禁止數字折行 */
+            white-space: nowrap;
         }
 
         .excel-table tr:nth-child(even) {
@@ -237,12 +238,12 @@
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th style="width: 6%;">#</th>
-                        <th style="width: 22%;">投入本金</th>
-                        <th style="width: 14%;">年利率</th>
-                        <th style="width: 12%;">年數</th>
-                        <th style="width: 20%;">總投報率</th>
-                        <th style="width: 26%;">期末總金額</th>
+                        <th>#</th>
+                        <th>本金(元)</th>
+                        <th>利率</th>
+                        <th>年數</th>
+                        <th>總投報率</th>
+                        <th>期末總額(元)</th>
                     </tr>
                 </thead>
                 <tbody id="singleHistoryList">
@@ -257,12 +258,12 @@
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th style="width: 6%;">#</th>
-                        <th style="width: 20%;">月扣金額</th>
-                        <th style="width: 14%;">年利率</th>
-                        <th style="width: 12%;">年數</th>
-                        <th style="width: 22%;">累積本金</th>
-                        <th style="width: 26%;">期末總金額</th>
+                        <th>#</th>
+                        <th>月扣(元)</th>
+                        <th>利率</th>
+                        <th>年數</th>
+                        <th>累積本金(元)</th>
+                        <th>期末總額(元)</th>
                     </tr>
                 </thead>
                 <tbody id="monthlyHistoryList">
@@ -377,7 +378,7 @@
     }
 
     function renderHistory() {
-        // 1. 單筆表格
+        // 1. 單筆表格（省略 $ 符號避免換行，並以千分位格式化）
         const singleTbody = document.getElementById('singleHistoryList');
         if (singleHistory.length === 0) {
             singleTbody.innerHTML = `<tr><td colspan="6" class="empty-tip">尚無單筆投入紀錄</td></tr>`;
@@ -385,11 +386,11 @@
             singleTbody.innerHTML = singleHistory.map((item, index) => `
                 <tr>
                     <td><b>${index + 1}</b></td>
-                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.val1.toLocaleString()}</td>
                     <td>${item.rate}%</td>
                     <td>${item.years}年</td>
                     <td>${item.totalReturnRate}</td>
-                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                    <td style="color:#0071e3; font-weight:bold;">${item.totalAmount.toLocaleString()}</td>
                 </tr>
             `).join('');
         }
@@ -402,11 +403,11 @@
             monthlyTbody.innerHTML = monthlyHistory.map((item, index) => `
                 <tr>
                     <td><b>${index + 1}</b></td>
-                    <td>$${item.val1.toLocaleString()}</td>
+                    <td>${item.val1.toLocaleString()}</td>
                     <td>${item.rate}%</td>
                     <td>${item.years}年</td>
-                    <td>$${item.totalPrincipal.toLocaleString()}</td>
-                    <td style="color:#0071e3; font-weight:bold;">$${item.totalAmount.toLocaleString()}</td>
+                    <td>${item.totalPrincipal.toLocaleString()}</td>
+                    <td style="color:#0071e3; font-weight:bold;">${item.totalAmount.toLocaleString()}</td>
                 </tr>
             `).join('');
         }
@@ -429,7 +430,7 @@
 
         document.getElementById('pdfPrintDate').innerText = new Date().toLocaleString('zh-TW');
         
-        // 渲染 PDF 單筆表格
+        // 渲染 PDF 單筆表格（PDF 導出時保留 $ 符號）
         const pdfSingleBody = document.getElementById('pdfSingleBody');
         if (singleHistory.length === 0) {
             pdfSingleBody.innerHTML = `<tr><td colspan="6" style="color:#999; padding:8px;">無單筆試算紀錄</td></tr>`;
