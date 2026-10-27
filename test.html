@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能計算器</title>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f7;
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            width: 85%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+        }
+
+        /* 選單與輸入框共用樣式 */
+        select, input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #d2d2d7;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: #0071e3;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background-color: #0071e3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:active {
+            background-color: #005bb5;
+        }
+
+        .result {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5ea;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>多功能計算器</h2>
+    
+    <!-- 1. 下拉選單：讓使用者選擇計算模式 -->
+    <select id="mode">
+        <option value="add">加法 (A + B)</option>
+        <option value="sub">減法 (A - B)</option>
+        <option value="mul">乘法 (A × B)</option>
+        <option value="div">除法 (A ÷ B)</option>
+        <option value="custom1">自訂公式 1：(A + B) × 2</option>
+        <option value="custom2">自訂公式 2：A 的 B 次方</option>
+    </select>
+    
+    <!-- 2. 輸入欄位 -->
+    <input type="number" id="num1" placeholder="請輸入數字 A" inputmode="decimal">
+    <input type="number" id="num2" placeholder="請輸入數字 B" inputmode="decimal">
+    
+    <!-- 3. 按鈕 -->
+    <button onclick="calculate()">計算結果</button>
+    
+    <!-- 4. 結果顯示區 -->
+    <div class="result" id="resultText">結果：--</div>
+</div>
+
+<script>
+    function calculate() {
+        // 抓取模式與輸入值
+        const mode = document.getElementById('mode').value;
+        const input1 = document.getElementById('num1').value;
+        const input2 = document.getElementById('num2').value;
+
+        const n1 = parseFloat(input1);
+        const n2 = parseFloat(input2);
+        
+        // 防呆檢查
+        if (isNaN(n1) || isNaN(n2)) {
+            document.getElementById('resultText').innerText = "請完整輸入兩個數字！";
+            return;
+        }
+        
+        let result = 0;
+
+        // 根據選單選擇的值 (mode)，切換不同運算邏輯
+        switch (mode) {
+            case 'add':
+                result = n1 + n2;
+                break;
+            case 'sub':
+                result = n1 - n2;
+                break;
+            case 'mul':
+                result = n1 * n2;
+                break;
+            case 'div':
+                if (n2 === 0) {
+                    document.getElementById('resultText').innerText = "除數不能為 0！";
+                    return;
+                }
+                result = n1 / n2;
+                break;
+            case 'custom1':
+                // 範例自訂公式 1：(A + B) * 2
+                result = (n1 + n2) * 2;
+                break;
+            case 'custom2':
+                // 範例自訂公式 2：A 的 B 次方
+                result = Math.pow(n1, n2);
+                break;
+            default:
+                result = 0;
+        }
+        
+        // 顯示結果（若有小數，自動最多保留到小數點後 4 位）
+        document.getElementById('resultText').innerText = "結果：" + Number(result.toFixed(4));
+    }
+</script>
+
+</body>
+</html>
